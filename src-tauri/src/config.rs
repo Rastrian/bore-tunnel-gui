@@ -45,7 +45,7 @@ impl Default for AppConfig {
     }
 }
 
-fn config_dir() -> Result<PathBuf, String> {
+pub fn config_dir() -> Result<PathBuf, String> {
     let dir = dirs::config_dir().ok_or("Cannot find config directory")?;
     Ok(dir.join(APP_DIR))
 }

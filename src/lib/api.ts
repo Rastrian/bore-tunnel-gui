@@ -32,3 +32,7 @@ export async function getStatus(): Promise<TunnelStatus> {
 export async function copyAddress(): Promise<string> {
   return invoke<string>("copy_address");
 }
+
+export async function openConfigFolder(): Promise<void> {
+  return invoke("open_config_folder");
+}

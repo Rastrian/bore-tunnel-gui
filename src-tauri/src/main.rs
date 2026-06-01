@@ -25,6 +25,7 @@ pub fn run() {
             commands::stop_tunnel,
             commands::get_status,
             commands::copy_address,
+            commands::open_config_folder,
         ])
         .run(tauri::generate_context!());
 

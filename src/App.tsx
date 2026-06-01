@@ -82,10 +82,6 @@ export default function App() {
   async function handleStart() {
     try {
       setError("");
-      if (!secret) {
-        setError("Please enter the Bore secret/password.");
-        return;
-      }
       const s = await api.startTunnel(config, secret);
       setStatus(s);
       startPolling();
@@ -142,7 +138,7 @@ export default function App() {
           <div className="secret-row">
             <input
               type={showSecret ? "text" : "password"}
-              placeholder={hasStoredSecret ? "(stored)" : "Enter secret"}
+              placeholder={hasStoredSecret ? "(stored)" : "Optional — leave empty for public servers"}
               value={secret}
               onChange={e => setSecret(e.target.value)}
             />
@@ -170,6 +166,9 @@ export default function App() {
         <button className="btn-secondary" onClick={handleSaveConfig}>
           Save Config
         </button>
+        <button className="btn-secondary" onClick={() => api.openConfigFolder()}>
+          Open Config Folder
+        </button>
       </section>
 
       <section className="section">
@@ -177,7 +176,7 @@ export default function App() {
           <button
             className="btn-primary"
             onClick={handleStart}
-            disabled={isRunning || !config.bore_server_host || !secret}
+            disabled={isRunning || !config.bore_server_host}
           >
             Start Tunnel
           </button>

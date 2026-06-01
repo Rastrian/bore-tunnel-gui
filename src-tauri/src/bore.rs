@@ -160,9 +160,6 @@ impl BoreClient {
         if server.is_empty() {
             return Err("Bore server host is required.".into());
         }
-        if secret.is_empty() {
-            return Err("Bore secret is required.".into());
-        }
 
         {
             let mut s = self.shared.lock().await;
@@ -258,13 +255,18 @@ async fn control_loop(
         s.logs.push(format!("[bore] Connected to {server}:{control_port}"));
     }
 
-    // Auth
-    let (challenge, answer) = do_auth(&mut reader, &mut wh, secret).await?;
-    {
+    // Auth (skip for public servers with no secret)
+    if !secret.is_empty() {
+        let (challenge, answer) = do_auth(&mut reader, &mut wh, secret).await?;
+        {
+            let mut s = shared.lock().await;
+            s.logs.push(format!("[bore] Challenge: {challenge}"));
+            s.logs.push(format!("[bore] Answer: {answer}"));
+            s.logs.push("[bore] Authenticated.".into());
+        }
+    } else {
         let mut s = shared.lock().await;
-        s.logs.push(format!("[bore] Challenge: {challenge}"));
-        s.logs.push(format!("[bore] Answer: {answer}"));
-        s.logs.push("[bore] Authenticated.".into());
+        s.logs.push("[bore] No secret provided, skipping authentication.".into());
     }
 
     // Hello
@@ -351,8 +353,10 @@ async fn accept_connection(
     let (rh, mut wh) = tokio::io::split(stream);
     let mut reader = BufReader::new(rh);
 
-    // Auth + Accept
-    do_auth(&mut reader, &mut wh, secret).await?;
+    // Auth + Accept (skip auth for public servers)
+    if !secret.is_empty() {
+        do_auth(&mut reader, &mut wh, secret).await?;
+    }
     send_msg(&mut wh, &ClientMsg::Accept(conn_id.into()))
         .await
         .map_err(|e| format!("Accept send: {e}"))?;
